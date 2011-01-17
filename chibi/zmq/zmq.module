@@ -1,0 +1,69 @@
+(define-module (tizoc chibi zmq)
+  (export
+   ;; Socket types
+   zmq-socket-type/pair
+   zmq-socket-type/sub
+   zmq-socket-type/pub
+   zmq-socket-type/req
+   zmq-socket-type/rep
+   zmq-socket-type/xreq
+   zmq-socket-type/xrep
+   zmq-socket-type/push
+   zmq-socket-type/pull
+   zmq-socket-type/upstream
+   zmq-socket-type/downstream
+
+   ;; Messaging flags
+   zmq-messaging-flag/sndmore
+   zmq-messaging-flag/rcvmore
+   zmq-messaging-flag/noblock
+
+   ;; Socket options
+   zmq-socket-option/hwm
+   zmq-socket-option/swap
+   zmq-socket-option/affinity
+   zmq-socket-option/identity
+   zmq-socket-option/subscribe
+   zmq-socket-option/unsubscribe
+   zmq-socket-option/rate
+   zmq-socket-option/recovery-ivl
+   zmq-socket-option/mcast-loop
+   zmq-socket-option/sndbuf
+   zmq-socket-option/rcvbuf
+
+   ;; Type predicates
+   zmq-socket?
+   zmq-context?
+
+   ;; API calls
+   zmq-version
+   zmq-init
+   zmq-term
+   zmq-socket
+   zmq-close
+   zmq-getsockopt
+   zmq-setsockopt
+   zmq-bind
+   zmq-connect
+   zmq-send-string
+   zmq-recv-string
+
+   ;; Multiplexing
+   zmq-select
+
+   ;; TODO: use exceptions?
+   zmq-errno
+   zmq-strerror
+
+   ;; Utility
+   with-zmq-context
+
+   ;; Parameters
+   zmq-default-context
+   zmq-io-threads
+   )
+  (import-immutable (scheme))
+  (import (srfi 39))
+  (include-shared "zmq")
+  (include-shared "zmq-extra")
+  (include "zmq.scm"))

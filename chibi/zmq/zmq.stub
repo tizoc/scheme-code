@@ -1,0 +1,80 @@
+(c-system-include "zmq.h")
+
+(c-include "zmq-typedefs.h")
+
+(define-c-const int (zmq-socket-option/hwm          "ZMQ_HWM"))
+(define-c-const int (zmq-socket-option/swap         "ZMQ_SWAP"))
+(define-c-const int (zmq-socket-option/affinity     "ZMQ_AFFINITY"))
+(define-c-const int (zmq-socket-option/identity     "ZMQ_IDENTITY"))
+(define-c-const int (zmq-socket-option/subscribe    "ZMQ_SUBSCRIBE"))
+(define-c-const int (zmq-socket-option/unsubscribe  "ZMQ_UNSUBSCRIBE"))
+(define-c-const int (zmq-socket-option/rate         "ZMQ_RATE"))
+(define-c-const int (zmq-socket-option/recovery-ivl "ZMQ_RECOVERY_IVL"))
+(define-c-const int (zmq-socket-option/mcast-loop   "ZMQ_MCAST_LOOP"))
+(define-c-const int (zmq-socket-option/sndbuf       "ZMQ_SNDBUF"))
+(define-c-const int (zmq-socket-option/rcvbuf       "ZMQ_RCVBUF"))
+
+(define-c-const int (zmq-messaging-flag/sndmore     "ZMQ_SNDMORE"))
+(define-c-const int (zmq-messaging-flag/rcvmore     "ZMQ_RCVMORE"))
+(define-c-const int (zmq-messaging-flag/noblock     "ZMQ_NOBLOCK"))
+
+(define-c-const int (zmq-socket-type/pair           "ZMQ_PAIR"))
+(define-c-const int (zmq-socket-type/sub            "ZMQ_SUB"))
+(define-c-const int (zmq-socket-type/pub            "ZMQ_PUB"))
+(define-c-const int (zmq-socket-type/req            "ZMQ_REQ"))
+(define-c-const int (zmq-socket-type/rep            "ZMQ_REP"))
+(define-c-const int (zmq-socket-type/xreq           "ZMQ_XREQ"))
+(define-c-const int (zmq-socket-type/xrep           "ZMQ_XREP"))
+(define-c-const int (zmq-socket-type/push           "ZMQ_PUSH"))
+(define-c-const int (zmq-socket-type/pull           "ZMQ_PULL"))
+(define-c-const int (zmq-socket-type/upstream       "ZMQ_UPSTREAM"))
+(define-c-const int (zmq-socket-type/downstream     "ZMQ_DOWNSTREAM"))
+
+(define-c-const int (zmq-poll/in                    "ZMQ_POLLIN"))
+(define-c-const int (zmq-poll/out                   "ZMQ_POLLOUT"))
+(define-c-const int (zmq-poll/err                   "ZMQ_POLLERR"))
+
+(define-c-type zmqcontext
+  predicate: zmq-context?)
+
+(define-c-type zmq_msg_t
+  predicate: zmq-message?)
+
+(define-c-type zmqsocket
+  predicate: zmq-socket?)
+
+(define-c-type zmq_pollitem_t
+  predicate: zmq-pollitem?
+  constructor: (make-zmq-pollitem socket fd events)
+  (zmqsocket socket zmq-pollitem-socket)
+  (int fd zmq-pollitem-fd)
+  (short events zmq-pollitem-events)
+  (short revents zmq-pollitem-revents))
+
+(define-c zmqcontext (%zmq-init zmq_init) ((default 1 int)))
+(define-c errno zmq-term (zmqcontext))
+
+(define-c errno zmq-msg-init ((pointer result zmq_msg_t)))
+(define-c errno zmq-msg-init-size ((pointer result zmq_msg_t) size_t))
+
+(define-c errno zmq-msg-close ((pointer zmq_msg_t)))
+(define-c void* zmq-msg-data ((pointer zmq_msg_t)))
+(define-c size_t zmq-msg-size ((pointer zmq_msg_t)))
+(define-c errno zmq-msg-copy ((pointer zmq_msg_t) (pointer zmq_msg_t)))
+(define-c errno zmq-msg-move ((pointer zmq_msg_t) (pointer zmq_msg_t)))
+
+(define-c zmqsocket (%zmq-socket zmq_socket) (zmqcontext int))
+(define-c errno zmq-close (zmqsocket))
+
+(define-c errno (%zmq-setsockopt-string zmq_setsockopt) (zmqsocket int (const string) size_t))
+(define-c errno (%zmq-setsockopt-uint64 zmq_setsockopt) (zmqsocket int (pointer unsigned-long) (value 8)))
+(define-c errno (%zmq-setsockopt-int64 zmq_setsockopt) (zmqsocket int (pointer long) (value 8)))
+
+(define-c errno zmq-bind (zmqsocket (const string)))
+(define-c errno zmq-connect (zmqsocket (const string)))
+(define-c errno (%zmq-send zmq_send) (zmqsocket (pointer zmq_msg_t) int))
+(define-c errno (%zmq-recv zmq_recv) (zmqsocket (pointer zmq_msg_t) int))
+
+(define-c int zmq-errno ())
+(define-c (const string) zmq-strerror (int))
+(define-c void (%zmq-version zmq_version) ((result int) (result int) (result int)))

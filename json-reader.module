@@ -1,0 +1,7 @@
+(define-module (tizoc chibi json-reader)
+  (export
+   read-json-object
+   json-string->alist)
+  (import-immutable (scheme))
+  (import (srfi 9) (srfi 39))
+  (include "json-reader.scm"))

@@ -1,0 +1,9 @@
+{
+    "string": "string value\nwith newline",
+    "float": 12345.0,
+    "integer": 12345,
+    "null": null,
+    "true": true,
+    "false": false,
+    "array": ["string", 1.0, 1, null, true, false]
+}

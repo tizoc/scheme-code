@@ -35,24 +35,26 @@
 (define-c-const int (zmq-poll/err                   "ZMQ_POLLERR"))
 
 (define-c-type zmqcontext
-  predicate: zmq-context?)
+  predicate: context?)
 
 (define-c-type zmq_msg_t
   predicate: zmq-message?)
 
 (define-c-type zmqsocket
-  predicate: zmq-socket?)
+  predicate: socket?)
 
-(define-c-type zmq_pollitem_t
-  predicate: zmq-pollitem?
-  constructor: (make-zmq-pollitem socket fd events)
-  (zmqsocket socket zmq-pollitem-socket)
-  (int fd zmq-pollitem-fd)
-  (short events zmq-pollitem-events)
-  (short revents zmq-pollitem-revents))
+;; Not used right now
+;; (define-c-type zmq_pollitem_t
+;;   predicate: zmq-pollitem?
+;;   constructor: (make-zmq-pollitem socket fd events)
+;;   finalizer: free
+;;   (zmqsocket socket zmq-pollitem-socket)
+;;   (int fd zmq-pollitem-fd)
+;;   (short events zmq-pollitem-events)
+;;   (short revents zmq-pollitem-revents))
 
-(define-c zmqcontext (%zmq-init zmq_init) ((default 1 int)))
-(define-c errno zmq-term (zmqcontext))
+(define-c zmqcontext (make-context zmq_init) ((default 1 int)))
+(define-c errno (terminate-context zmq_term) (zmqcontext))
 
 (define-c errno zmq-msg-init ((pointer result zmq_msg_t)))
 (define-c errno zmq-msg-init-size ((pointer result zmq_msg_t) size_t))
@@ -64,14 +66,14 @@
 (define-c errno zmq-msg-move ((pointer zmq_msg_t) (pointer zmq_msg_t)))
 
 (define-c zmqsocket (%zmq-socket zmq_socket) (zmqcontext int))
-(define-c errno zmq-close (zmqsocket))
+(define-c errno (close-socket zmq_close) (zmqsocket))
 
 (define-c errno (%zmq-setsockopt-string zmq_setsockopt) (zmqsocket int (const string) size_t))
 (define-c errno (%zmq-setsockopt-uint64 zmq_setsockopt) (zmqsocket int (pointer unsigned-long) (value 8)))
 (define-c errno (%zmq-setsockopt-int64 zmq_setsockopt) (zmqsocket int (pointer long) (value 8)))
 
-(define-c errno zmq-bind (zmqsocket (const string)))
-(define-c errno zmq-connect (zmqsocket (const string)))
+(define-c errno (bind-socket zmq_bind) (zmqsocket (const string)))
+(define-c errno (connect-socket zmq_connect) (zmqsocket (const string)))
 (define-c errno (%zmq-send zmq_send) (zmqsocket (pointer zmq_msg_t) int))
 (define-c errno (%zmq-recv zmq_recv) (zmqsocket (pointer zmq_msg_t) int))
 

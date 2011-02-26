@@ -1,19 +1,21 @@
 (import (tizoc chibi zmq) (chibi test))
 
-(test-assert "version"
-             (equal? (list 2 0 10)
-                     (zmq-version)))
+(define (with-zmq-context body)
+  (let* ((context (make-context (zmq-io-threads)))
+         (result (body context)))
+    (terminate-context context)
+    result))
 
-(test-assert "init"
-             (zmq-context? (zmq-init)))
+(test-assert "make-context"
+             (context? (make-context 1)))
 
 (test-assert "with-zmq-context"
              (with-zmq-context
               (lambda (ctx)
-                (zmq-context? ctx))))
+                (context? ctx))))
 
-(test-assert "socket init"
-             (zmq-socket? (zmq-socket zmq-socket-type/req)))
+(test-assert "make-socket"
+             (socket? (make-socket zmq-socket-type/req)))
 
 (test
  "send/recv"
@@ -21,17 +23,17 @@
  (with-zmq-context
   (lambda (ctx)
 
-    (let ((socket-req (zmq-socket zmq-socket-type/req ctx))
-          (socket-rep (zmq-socket zmq-socket-type/rep ctx)))
+    (let ((socket-req (make-socket zmq-socket-type/req ctx))
+          (socket-rep (make-socket zmq-socket-type/rep ctx)))
 
-      (zmq-bind socket-rep "inproc://test")
-      (zmq-connect socket-req "inproc://test")
+      (bind-socket socket-rep "inproc://test")
+      (connect-socket socket-req "inproc://test")
 
-      (let* ((send-result (zmq-send-string socket-req "hola"))
-             (recv-result (zmq-recv-string socket-rep)))
+      (let* ((send-result (send-message socket-req "hola"))
+             (recv-result (receive-message socket-rep)))
 
-        (zmq-close socket-req)
-        (zmq-close socket-rep)
+        (close-socket socket-req)
+        (close-socket socket-rep)
 
         (list send-result recv-result))))))
 
@@ -39,19 +41,19 @@
   (with-zmq-context
    (lambda (ctx)
 
-     (let ((socket-req (zmq-socket zmq-socket-type/req ctx))
-           (socket-rep (zmq-socket zmq-socket-type/rep ctx)))
+     (let ((socket-req (make-socket zmq-socket-type/req ctx))
+           (socket-rep (make-socket zmq-socket-type/rep ctx)))
 
-       (zmq-bind socket-rep "inproc://test")
-       (zmq-connect socket-req "inproc://test")
+       (bind-socket socket-rep "inproc://test")
+       (connect-socket socket-req "inproc://test")
 
-       (let* ((select1 (zmq-select (list socket-rep) (list socket-req)))
-              (send-result (zmq-send-string socket-req "hola"))
-              (select2 (zmq-select (list socket-rep) (list socket-req)))
-              (recv-result (zmq-recv-string socket-rep)))
+       (let* ((select1 (select (list socket-rep) (list socket-req)))
+              (send-result (send-message socket-req "hola"))
+              (select2 (select (list socket-rep) (list socket-req)))
+              (recv-result (receive-message socket-rep)))
 
-         (zmq-close socket-req)
-         (zmq-close socket-rep)
+         (close-socket socket-req)
+         (close-socket socket-rep)
 
          (and (equal? (list '() (list socket-req) '())
                       select1)
@@ -64,12 +66,12 @@
  (with-zmq-context
   (lambda (ctx)
 
-    (let ((socket (zmq-socket zmq-socket-type/req ctx)))
+    (let ((socket (make-socket zmq-socket-type/req ctx)))
 
-      (zmq-setsockopt socket 'hwm 1)
-      (zmq-setsockopt socket 'swap 2)
-      (zmq-setsockopt socket 'mcast-loop #t)
-      (zmq-setsockopt socket 'identity "test")
+      (socket-option-set! socket 'hwm 1)
+      (socket-option-set! socket 'swap 2)
+      (socket-option-set! socket 'mcast-loop #t)
+      (socket-option-set! socket 'identity "test")
 
-      (map (lambda (option) (zmq-getsockopt socket option))
+      (map (lambda (option) (socket-option socket option))
            '(hwm swap mcast-loop identity))))))

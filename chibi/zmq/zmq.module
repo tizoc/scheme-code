@@ -32,31 +32,32 @@
    zmq-socket-option/rcvbuf
 
    ;; Type predicates
-   zmq-socket?
-   zmq-context?
+   socket?
+   context?
 
    ;; API calls
    zmq-version
-   zmq-init
-   zmq-term
-   zmq-socket
-   zmq-close
-   zmq-getsockopt
-   zmq-setsockopt
-   zmq-bind
-   zmq-connect
-   zmq-send-string
-   zmq-recv-string
+   make-context
+   terminate-context
+   make-socket
+   close-socket
+   socket-option
+   socket-option-set!
+   bind-socket
+   connect-socket
+   send-message
+   receive-message
+   send-message/noblock
+   receive-message/noblock
 
    ;; Multiplexing
-   zmq-select
+   select
 
    ;; TODO: use exceptions?
    zmq-errno
    zmq-strerror
 
-   ;; Utility
-   with-zmq-context
+   ;; TODO socket-fd
 
    ;; Parameters
    zmq-default-context

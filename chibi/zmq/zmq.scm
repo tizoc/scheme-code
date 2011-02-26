@@ -23,14 +23,11 @@
 
 (define (zmq-default-context/initialize)
   (or (zmq-default-context)
-      (begin (zmq-default-context (zmq-init))
-             (zmq-default-context))))
+      (begin
+        (zmq-default-context (make-context (zmq-io-threads)))
+        (zmq-default-context))))
 
-(define (zmq-init . o)
-  (let-optionals* o ((threads (zmq-io-threads)))
-    (%zmq-init threads)))
-
-(define (zmq-socket type . o)
+(define (make-socket type . o)
   (let-optionals* o ((context (zmq-default-context/initialize)))
     (%zmq-socket context type)))
 
@@ -65,7 +62,7 @@
                              zmq-socket-option/subscribe
                              zmq-socket-option/unsubscribe))
 
-(define (zmq-setsockopt socket option value)
+(define (socket-option-set! socket option value)
   (define int-option (if (symbol? option)
                          (zmq-socket-option-value option)
                          option))
@@ -85,7 +82,7 @@
      (%zmq-setsockopt-string socket int-option value (string-bytes-count value)))
     (else (error "invalid option" option))))
 
-(define (zmq-getsockopt socket option)
+(define (socket-option socket option)
   (define int-option (if (symbol? option)
                          (zmq-socket-option-value option)
                          option))
@@ -105,13 +102,6 @@
      (%zmq-getsockopt-string socket int-option))
     (else (error "invalid option" option))))
 
-;; TODO: don't pass context and use parametrize?
-(define (with-zmq-context body)
-  (let* ((context (zmq-init))
-         (result (body context)))
-    (zmq-term context)
-    result))
-
 (define (zmq-msg-init-string string)
   (cond ((not (string? string)) (error "Not a string" string))
         (else
@@ -119,20 +109,33 @@
            (%zmq-msg-set-string-data message string)
            message))))
 
-(define (zmq-send-string socket string)
-  (let ((message (zmq-msg-init-string string)))
-    (%zmq-send socket message 0)))
+(define (send-message socket string . o)
+  (let-optionals* o ((send-more #f))
+   (let ((message (zmq-msg-init-string string)))
+     (%zmq-send socket message (if send-more zmq-messaging-flag/sndmore 0)))))
 
-(define (zmq-recv-string socket)
+(define (send-message/noblock socket string . o)
+  (let-optionals* o ((send-more #f))
+    (let ((message (zmq-msg-init-string string)))
+      (%zmq-send socket message (+ zmq-messaging-flag/noblock
+                                   (if send-more zmq-messaging-flag/sndmore 0))))))
+
+(define (%receive-message socket flags)
   (let ((message (zmq-msg-init)))
-    (%zmq-recv socket message 0)
-    (let* ((len (zmq-msg-size message))
-           (data (zmq-msg-data message))
-           (string (make-c-string data len)))
-      (zmq-msg-close message)
-      string)))
+    (and (%zmq-recv socket message flags)
+         (let* ((len (zmq-msg-size message))
+                (data (zmq-msg-data message))
+                (string (make-c-string data len)))
+           (zmq-msg-close message)
+           string))))
 
-(define (zmq-select in . o)
+(define (receive-message socket)
+  (%receive-message socket 0))
+
+(define (receive-message/noblock socket)
+  (%receive-message socket zmq-messaging-flag/noblock))
+
+(define (select in . o)
   (let-optionals* o ((out #())
                      (err #())
                      (timeout 0))

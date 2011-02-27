@@ -14,7 +14,7 @@
 (test
  "json-string->alist with map"
  expected-alist-result
- (let ((data (call-with-input-file "json-test.json"
+ (let ((data (call-with-input-file "tizoc/json-reader/json-test.json"
                port->string)))
    (json-string->alist data)))
 

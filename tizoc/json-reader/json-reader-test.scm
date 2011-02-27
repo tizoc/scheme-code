@@ -1,4 +1,4 @@
-(import (tizoc chibi json-reader) (chibi test) (chibi io))
+(import (tizoc json-reader) (chibi test) (chibi io))
 
 (define json-null (json-string->alist "null"))
 

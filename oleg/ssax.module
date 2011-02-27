@@ -1,0 +1,23 @@
+(define-module (oleg ssax)
+  (export
+   ssax:read-char-data
+   ssax:make-parser
+   ssax:make-pi-parser
+   ssax:make-elem-parser
+   ssax:xml->sxml)
+
+  (import-immutable (scheme) (srfi 9) (oleg define-opt) (oleg input-parse))
+
+  (include "input-parse/myenv-chibi.scm")
+  ;; (include "ssax/ppretty-prints.scm") ;; For tests
+  ;; (include "ssax/catch-error.scm") ;; For tests, also change import-immutable to import
+  (include "input-parse/srfi-13-local.scm")
+  (include "ssax/util.scm")
+  (include "ssax/assert.scm")
+  (include "input-parse/char-encoding.scm")
+  (include "ssax/control.scm")
+  (include "input-parse/parser-errors-vanilla.scm")
+  (include "ssax/look-for-str.scm")
+  (include "ssax/output.scm")
+  (include "ssax/ssax-warn-vanilla.scm")
+  (include "ssax/SSAX.scm"))

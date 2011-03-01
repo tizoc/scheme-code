@@ -1,10 +1,10 @@
 (define-module (oleg ssax)
   (export
-   ssax:read-char-data
-   ssax:make-parser
-   ssax:make-pi-parser
-   ssax:make-elem-parser
-   ssax:xml->sxml)
+   (rename ssax:read-char-data read-char-data)
+   (rename ssax:make-parser make-parser)
+   (rename ssax:make-pi-parser make-pi-parser)
+   (rename ssax:make-elem-parser make-elem-parser)
+   (rename ssax:xml->sxml xml->sxml))
 
   (import-immutable (scheme) (srfi 9) (oleg define-opt) (oleg input-parse))
 

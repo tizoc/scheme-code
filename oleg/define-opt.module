@@ -1,7 +1,7 @@
-(define-module (oleg define-opt)
+(module (oleg define-opt)
   (export define-opt)
   (import-immutable (scheme))
-  (body
+  (begin
     (define-syntax define-opt
       (syntax-rules (optional)
         ((define-opt (name . bindings) . bodies)

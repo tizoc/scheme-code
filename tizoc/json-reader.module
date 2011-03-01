@@ -1,4 +1,4 @@
-(define-module (tizoc json-reader)
+(module (tizoc json-reader)
   (export
    read-json-object
    json-string->alist)

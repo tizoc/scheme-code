@@ -1,4 +1,4 @@
-(define-module (oleg input-parse)
+(module (oleg input-parse)
   (export
    peek-next-char assert-curr-char skip-until skip-while
    next-token next-token-of read-text-line read-string)

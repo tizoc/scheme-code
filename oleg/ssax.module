@@ -1,4 +1,4 @@
-(define-module (oleg ssax)
+(module (oleg ssax)
   (export
    (rename ssax:read-char-data read-char-data)
    (rename ssax:make-parser make-parser)

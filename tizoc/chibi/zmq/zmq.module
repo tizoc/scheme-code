@@ -1,4 +1,4 @@
-(define-module (tizoc chibi zmq)
+(module (tizoc chibi zmq)
   (export
    ;; Socket types
    zmq-socket-type/pair

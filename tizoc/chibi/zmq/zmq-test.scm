@@ -63,15 +63,12 @@
 (test
  "setsockopt and getsockopt"
  '(1 2 #t "test")
- (with-zmq-context
-  (lambda (ctx)
+ (let ((socket (make-socket zmq-socket-type/req)))
 
-    (let ((socket (make-socket zmq-socket-type/req ctx)))
+   (socket-option-set! socket 'hwm 1)
+   (socket-option-set! socket 'swap 2)
+   (socket-option-set! socket 'mcast-loop #t)
+   (socket-option-set! socket 'identity "test")
 
-      (socket-option-set! socket 'hwm 1)
-      (socket-option-set! socket 'swap 2)
-      (socket-option-set! socket 'mcast-loop #t)
-      (socket-option-set! socket 'identity "test")
-
-      (map (lambda (option) (socket-option socket option))
-           '(hwm swap mcast-loop identity))))))
+   (map (lambda (option) (socket-option socket option))
+        '(hwm swap mcast-loop identity))))

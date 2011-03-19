@@ -44,7 +44,8 @@
     ((mcast-loop) zmq-socket-option/mcast-loop)
     ((sndbuf) zmq-socket-option/sndbuf)
     ((rcvbuf) zmq-socket-option/rcvbuf)
-    ((rcvmore) zmq-messaging-flag/rcvmore)
+    ((type) zmq-socket-option/type)
+    ((rcvmore) zmq-messaging-flag/rcvmore) ;; FIXME: ???
     (else (error "invalid option" symbol))))
 
 (define sockopt-uint64 (list zmq-socket-option/hwm
@@ -54,7 +55,8 @@
 
 (define sockopt-int64 (list zmq-socket-option/swap
                             zmq-socket-option/rate
-                            zmq-socket-option/recovery-ivl))
+                            zmq-socket-option/recovery-ivl
+                            zmq-socket-option/type))
 
 (define sockopt-bool (list zmq-socket-option/mcast-loop))
 

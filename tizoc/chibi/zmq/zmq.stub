@@ -13,6 +13,7 @@
 (define-c-const int (zmq-socket-option/mcast-loop   "ZMQ_MCAST_LOOP"))
 (define-c-const int (zmq-socket-option/sndbuf       "ZMQ_SNDBUF"))
 (define-c-const int (zmq-socket-option/rcvbuf       "ZMQ_RCVBUF"))
+(define-c-const int (zmq-socket-option/type         "ZMQ_TYPE"))
 
 (define-c-const int (zmq-messaging-flag/sndmore     "ZMQ_SNDMORE"))
 (define-c-const int (zmq-messaging-flag/rcvmore     "ZMQ_RCVMORE"))
@@ -80,3 +81,26 @@
 (define-c int zmq-errno ())
 (define-c (const string) zmq-strerror (int))
 (define-c void (%zmq-version zmq_version) ((result int) (result int) (result int)))
+
+(c-include "zmq-extra.c")
+
+(define-c sexp (make-c-string "sexp_make_c_string")
+  ((value ctx sexp) (value self sexp) sexp sexp))
+
+(define-c sexp (string-bytes-count "sexp_string_bytes_count")
+  ((value ctx sexp) (value self sexp) sexp))
+
+(define-c sexp (%zmq-msg-set-string-data "sexp_zmq_msg_set_string_data")
+  ((value ctx sexp) (value self sexp) sexp sexp))
+
+(define-c sexp (%zmq-select "sexp_zmq_select")
+  ((value ctx sexp) (value self sexp) sexp sexp sexp sexp))
+
+(define-c sexp (%zmq-getsockopt-string "sexp_zmq_getsockopt_string")
+  ((value ctx sexp) (value self sexp) sexp sexp))
+
+(define-c sexp (%zmq-getsockopt-uint64 "sexp_zmq_getsockopt_uint64")
+  ((value ctx sexp) (value self sexp) sexp sexp))
+
+(define-c sexp (%zmq-getsockopt-int64 "sexp_zmq_getsockopt_int64")
+  ((value ctx sexp) (value self sexp) sexp sexp))

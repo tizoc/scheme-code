@@ -5,8 +5,8 @@
 #include <stdint.h>
 #include <zmq.h>
 
-static sexp sexp_make_c_string_stub (sexp ctx sexp_api_params(self, n),
-                                     sexp bytes_cpointer, sexp count) {
+static sexp sexp_make_c_string (sexp ctx, sexp self,
+                                sexp bytes_cpointer, sexp count) {
     if (! (sexp_pointerp(bytes_cpointer)
            && (sexp_pointer_tag(bytes_cpointer) == SEXP_CPOINTER))) {
         return sexp_type_exception(ctx, self, SEXP_CPOINTER, bytes_cpointer);
@@ -20,8 +20,8 @@ static sexp sexp_make_c_string_stub (sexp ctx sexp_api_params(self, n),
                          sexp_sint_value(count));
 }
 
-static sexp sexp_string_bytes_count_stub (sexp ctx sexp_api_params(self, n),
-                                          sexp string) {
+static sexp sexp_string_bytes_count (sexp ctx, sexp self,
+                                     sexp string) {
     if (! sexp_stringp(string)) {
         return sexp_type_exception(ctx, self, SEXP_STRING, string);
     }
@@ -29,8 +29,8 @@ static sexp sexp_string_bytes_count_stub (sexp ctx sexp_api_params(self, n),
     return sexp_make_integer(ctx, sexp_string_length(string));
 }
 
-static sexp sexp_zmq_msg_set_string_data_stub (sexp ctx sexp_api_params(self, n),
-                                               sexp message, sexp string) {
+static sexp sexp_zmq_msg_set_string_data (sexp ctx, sexp self,
+                                          sexp message, sexp string) {
     zmq_msg_t *msg = sexp_cpointer_value(message);
 
     memcpy(zmq_msg_data(msg),
@@ -40,8 +40,8 @@ static sexp sexp_zmq_msg_set_string_data_stub (sexp ctx sexp_api_params(self, n)
     return SEXP_VOID;
 }
 
-static sexp sexp_zmq_select_stub (sexp ctx sexp_api_params(self, n),
-                                  sexp in, sexp out, sexp err, sexp timeout) {
+static sexp sexp_zmq_select (sexp ctx, sexp self,
+                             sexp in, sexp out, sexp err, sexp timeout) {
     sexp_gc_var4(res, in_res, out_res, err_res);
     sexp_gc_preserve4(ctx, res, in_res, out_res, err_res);
     int i, total, poll_result;
@@ -118,8 +118,8 @@ static sexp sexp_zmq_select_stub (sexp ctx sexp_api_params(self, n),
     return res;
 }
 
-static sexp sexp_zmq_getsockopt_string_stub (sexp ctx sexp_api_params(self, n),
-                                             sexp arg0, sexp arg1) {
+static sexp sexp_zmq_getsockopt_string (sexp ctx, sexp self,
+                                        sexp arg0, sexp arg1) {
     int err;
     char value[255];
     size_t size = sizeof(value);
@@ -142,8 +142,8 @@ static sexp sexp_zmq_getsockopt_string_stub (sexp ctx sexp_api_params(self, n),
     return res;
 }
 
-static sexp sexp_zmq_getsockopt_uint64_stub (sexp ctx sexp_api_params(self, n),
-                                             sexp arg0, sexp arg1) {
+static sexp sexp_zmq_getsockopt_uint64 (sexp ctx, sexp self,
+                                        sexp arg0, sexp arg1) {
     int err;
     uint64_t value;
     size_t size = sizeof(value);
@@ -159,8 +159,8 @@ static sexp sexp_zmq_getsockopt_uint64_stub (sexp ctx sexp_api_params(self, n),
     }
 }
 
-static sexp sexp_zmq_getsockopt_int64_stub (sexp ctx sexp_api_params(self, n),
-                                            sexp arg0, sexp arg1) {
+static sexp sexp_zmq_getsockopt_int64 (sexp ctx, sexp self,
+                                       sexp arg0, sexp arg1) {
     int err;
     int64_t value;
     size_t size = sizeof(value);
@@ -174,18 +174,4 @@ static sexp sexp_zmq_getsockopt_int64_stub (sexp ctx sexp_api_params(self, n),
     } else {
         return sexp_make_integer(ctx, value);
     }
-}
-
-sexp sexp_init_library (sexp ctx sexp_api_params(self, n), sexp env) {
-    sexp_gc_var2(name, tmp);
-    sexp_gc_preserve2(ctx, name, tmp);
-    sexp_define_foreign(ctx, env, "make-c-string", 2, sexp_make_c_string_stub);
-    sexp_define_foreign(ctx, env, "string-bytes-count", 1, sexp_string_bytes_count_stub);
-    sexp_define_foreign(ctx, env, "%zmq-msg-set-string-data", 2, sexp_zmq_msg_set_string_data_stub);
-    sexp_define_foreign(ctx, env, "%zmq-select", 4, sexp_zmq_select_stub);
-    sexp_define_foreign(ctx, env, "%zmq-getsockopt-string", 2, sexp_zmq_getsockopt_string_stub);
-    sexp_define_foreign(ctx, env, "%zmq-getsockopt-uint64", 2, sexp_zmq_getsockopt_uint64_stub);
-    sexp_define_foreign(ctx, env, "%zmq-getsockopt-int64", 2, sexp_zmq_getsockopt_int64_stub);
-    sexp_gc_release2(ctx);
-    return SEXP_VOID;
 }

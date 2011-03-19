@@ -66,5 +66,4 @@
   (import-immutable (scheme))
   (import (srfi 39))
   (include-shared "zmq")
-  (include-shared "zmq-extra")
   (include "zmq.scm"))

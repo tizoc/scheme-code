@@ -7,7 +7,7 @@
 (define (with-input-from-string string thunk)
   (call-with-input-string string
     (lambda (in)
-      (with-input-from-port in read-json-object))))
+      (with-input-from-port in thunk))))
 
 ;;
 

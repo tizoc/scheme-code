@@ -76,3 +76,28 @@
   (if (string-empty? string)
       (error "Invalid tnetstring, it is empty")
       (call-with-input-string string read-tnetstring)))
+
+;; Unparser code
+
+;; TODO: hash tables as dicts?
+
+(define (write-tnetstring value port)
+  (cond ((integer? value) (write-tnetstring-value (number->string value) #\# port))
+        ((string? value) (write-tnetstring-value value #\, port))
+        ((list? value) (write-tnetstring-list value port))
+        ((eq? value #t) (write-tnetstring-value "true" #\! port))
+        ((eq? value #f) (write-tnetstring-value "false" #\! port))
+        (else (error "Failed to serialize value to tnetstring: " value))))
+
+(define (write-tnetstring-value data type-char port)
+  (for-each (lambda (v) (display v port))
+            (list (string-length data) #\: data type-char)))
+
+(define (write-tnetstring-list lst port)
+  (let ((data (call-with-output-string
+               (lambda (port)
+                 (for-each (lambda (v) (write-tnetstring v port)) lst)))))
+    (write-tnetstring-value data #\] port)))
+
+(define (unparse-tnetstring value)
+  (call-with-output-string (lambda (port) (write-tnetstring value port))))

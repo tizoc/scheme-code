@@ -70,7 +70,7 @@
   (read-from-string/empty string read-tnetstring-list))
 
 (define (parse-tnetstring-dict string)
-    (read-from-string/empty string read-tnetstring-dict))
+  (read-from-string/empty string read-tnetstring-dict))
 
 (define (parse-tnetstring string)
   (if (string-empty? string)

@@ -56,10 +56,12 @@
               (read-tnetstring port)))))
 
 (define (read-tnetstring-dict port)
-  (let loop ((result '()) (key+value (read-tnetstring-pair port)))
-    (if (eof-object? key+value)
-        result
-        (loop (cons key+value result) (read-tnetstring-pair port)))))
+  (let ((result (make-hash-table string=?)))
+    (let loop ((key+value (read-tnetstring-pair port)))
+      (cond ((eof-object? key+value) result)          
+            (else
+             (hash-table-set! result (car key+value) (cdr key+value))
+             (loop (read-tnetstring-pair port)))))))
 
 (define (read-from-string/empty string proc)
   (if (string-empty? string)
@@ -79,12 +81,11 @@
 
 ;; Unparser code
 
-;; TODO: hash tables as dicts?
-
 (define (write-tnetstring value port)
   (cond ((integer? value) (write-tnetstring-value (number->string value) #\# port))
         ((string? value) (write-tnetstring-value value #\, port))
         ((list? value) (write-tnetstring-list value port))
+        ((hash-table? value) (write-tnetstring-dict value port))
         ((eq? value #t) (write-tnetstring-value "true" #\! port))
         ((eq? value #f) (write-tnetstring-value "false" #\! port))
         (else (error "Failed to serialize value to tnetstring: " value))))
@@ -98,6 +99,15 @@
                (lambda (port)
                  (for-each (lambda (v) (write-tnetstring v port)) lst)))))
     (write-tnetstring-value data #\] port)))
+
+(define (write-tnetstring-dict hashtable port)
+  (let ((data (call-with-output-string
+               (lambda (port)
+                 (hash-table-walk hashtable
+                   (lambda (key value)
+                     (write-tnetstring key port)
+                     (write-tnetstring value port)))))))
+    (write-tnetstring-value data #\} port)))
 
 (define (unparse-tnetstring value)
   (call-with-output-string (lambda (port) (write-tnetstring value port))))

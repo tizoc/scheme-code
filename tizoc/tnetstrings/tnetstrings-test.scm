@@ -1,4 +1,4 @@
-(import (tizoc tnetstrings) (chibi test))
+(import (tizoc tnetstrings) (chibi test) (srfi 69))
 
 (test "parse 4:true!"
       #t
@@ -37,7 +37,7 @@
       (parse-tnetstring "25:4:list,6:value1,6:value2,]"))
 
 (test "parse 32:3:key,5:value,4:list,8:5:alist,]}"
-      '(("list" . ("alist")) ("key" . "value"))
+      (alist->hash-table '(("list" . ("alist")) ("key" . "value")) string=?)
       (parse-tnetstring "32:3:key,5:value,4:list,8:5:alist,]}"))
 
 (test "unparse #f"
@@ -60,9 +60,17 @@
       "41:4:list,2:of,17:6:values,0:]2:10#]5:false!]"
       (unparse-tnetstring '("list" "of" ("values" () 10) #f)))
 
+(test "unparse (alist->hash-table '((\"list\" . (\"alist\")) (\"key\" . \"value\")) string=?)"
+      "32:4:list,8:5:alist,]3:key,5:value,}"
+      (unparse-tnetstring (alist->hash-table '(("list" . ("alist")) ("key" . "value")) string=?)))
+
 (test "unparse ()"
       "0:]"
       (unparse-tnetstring '()))
+
+(test "unparse (alist->hash-table '())"
+      "0:}"
+      (unparse-tnetstring (alist->hash-table '())))
 
 (test "unparse \"\""
       "0:,"

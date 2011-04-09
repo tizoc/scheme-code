@@ -1,4 +1,4 @@
 (module (tizoc tnetstrings)
   (export read-tnetstring parse-tnetstring)
   (import-immutable (scheme) (srfi 39))
-  (include "tnetstrings.scm"))
+  (include "tnetstrings/tnetstrings.scm"))

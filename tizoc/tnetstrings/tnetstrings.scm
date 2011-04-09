@@ -39,29 +39,38 @@
           ((#\}) (parse-tnetstring-dict data))
           (else (error "invalid payload type" type))))))
 
-(define (parse-tnetstring-list string)
+(define (read-tnetstring-pair port)
+  (let ((key (read-tnetstring port)))
+    (if (eof-object? key)
+        key ;; is EOF
+        (let ((value (read-tnetstring port)))
+          (if (eof-object? value)
+              (error "Unbalanced tnetstring pair")
+              (cons key value))))))
+
+(define (read-tnetstring-list port)
+  (let loop ((result '()) (value (read-tnetstring port)))
+    (if (eof-object? value)
+        (reverse result)
+        (loop (cons value result)
+              (read-tnetstring port)))))
+
+(define (read-tnetstring-dict port)
+  (let loop ((result '()) (key+value (read-tnetstring-pair port)))
+    (if (eof-object? key+value)
+        result
+        (loop (cons key+value result) (read-tnetstring-pair port)))))
+
+(define (read-from-string/empty string proc)
   (if (string-empty? string)
       '()
-      (call-with-input-string string
-        (lambda (port)
-          (let loop ((result '()) (value (read-tnetstring port)))
-            (if (eof-object? value)
-                (reverse result)
-                (loop (cons value result)
-                      (read-tnetstring port))))))))
+      (call-with-input-string string proc)))
+
+(define (parse-tnetstring-list string)
+  (read-from-string/empty string read-tnetstring-list))
 
 (define (parse-tnetstring-dict string)
-  (if (string-empty? string)
-      '()
-      (call-with-input-string string
-        (lambda (port)
-          (let loop ((result '())
-                     (key (read-tnetstring port)))
-            (if (eof-object? key)
-                (reverse result)
-                (let ((value (read-tnetstring port)))
-                  (loop (cons (cons key value) result)
-                        (read-tnetstring port)))))))))
+    (read-from-string/empty string read-tnetstring-dict))
 
 (define (parse-tnetstring string)
   (if (string-empty? string)

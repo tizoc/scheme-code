@@ -37,5 +37,5 @@
       (parse-tnetstring "25:4:list,6:value1,6:value2,]"))
 
 (test "32:3:key,5:value,4:list,8:5:alist,]}"
-      '(("key" . "value") ("list" "alist"))
+      '(("list" . ("alist")) ("key" . "value"))
       (parse-tnetstring "32:3:key,5:value,4:list,8:5:alist,]}"))

@@ -11,12 +11,6 @@
 
 (define drop-char read-char)
 
-(define (read-string n port)
-  (let loop ((n n) (result '()))
-    (if (zero? n)
-        (list->string (reverse result))
-        (loop (- n 1) (cons (read-char port) result)))))
-
 (define (string-empty? str)
   (zero? (string-length str)))
 

@@ -21,7 +21,7 @@
       (parse-tnetstring "0:]"))
 
 (test "parse 0:}"
-      '()
+      (make-hash-table string=?)
       (parse-tnetstring "0:}"))
 
 (test "parse 0:,"

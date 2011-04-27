@@ -19,7 +19,8 @@
 (define (read-tnetstring port)
   (if (eof-object? (peek-char port))
       (read-char port)
-      (let* ((len (string->number (read-until-char #\: port)))
+      (let* ((slen (read-until-char #\: port))
+             (len (string->number slen))
              (data (read-string len port))
              (type (read-char port)))
         (case type
@@ -57,16 +58,18 @@
              (hash-table-set! result (car key+value) (cdr key+value))
              (loop (read-tnetstring-pair port)))))))
 
-(define (read-from-string/empty string proc)
+(define (read-from-string/empty string empty-default proc)
   (if (string-empty? string)
-      '()
+      (empty-default)
       (call-with-input-string string proc)))
 
 (define (parse-tnetstring-list string)
-  (read-from-string/empty string read-tnetstring-list))
+  (read-from-string/empty string (lambda () '()) read-tnetstring-list))
+
+(define (empty-hash-table) (make-hash-table string=?))
 
 (define (parse-tnetstring-dict string)
-  (read-from-string/empty string read-tnetstring-dict))
+  (read-from-string/empty string empty-hash-table read-tnetstring-dict))
 
 (define (parse-tnetstring string)
   (if (string-empty? string)

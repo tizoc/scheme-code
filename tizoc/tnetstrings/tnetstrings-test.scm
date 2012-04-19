@@ -1,4 +1,4 @@
-(import (tizoc tnetstrings) (chibi test) (srfi 69))
+(import (scheme) (tizoc tnetstrings) (chibi test) (srfi 69))
 
 (test "parse 4:true!"
       #t

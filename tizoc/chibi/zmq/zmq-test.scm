@@ -1,4 +1,4 @@
-(import (tizoc chibi zmq) (chibi test))
+(import (scheme) (tizoc chibi zmq) (chibi test))
 
 (define (with-zmq-context body)
   (let* ((context (make-context (zmq-io-threads)))

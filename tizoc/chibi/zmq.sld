@@ -1,4 +1,4 @@
-(module (tizoc chibi zmq)
+(define-library (tizoc chibi zmq)
   (export
    ;; Socket types
    zmq-socket-type/pair
@@ -63,7 +63,6 @@
    zmq-default-context
    zmq-io-threads
    )
-  (import-immutable (scheme))
-  (import (srfi 39))
-  (include-shared "zmq")
-  (include "zmq.scm"))
+  (import (scheme) (srfi 39))
+  (include-shared "zmq/zmq")
+  (include "zmq/zmq.scm"))

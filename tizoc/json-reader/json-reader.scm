@@ -28,23 +28,28 @@
 
 (define (read-token)
   (let ((char (read-char)))
-    (case char
-      ((#\return #\newline #\space #\tab) (read-token)) ; Skip whitespace
-      ((#\") (read-string))
-      ((#\- #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9) (read-number char))
-      ((#\:) 'key-separator)
-      ((#\,) 'value-separator)
-      ((#\{) 'start-map)
-      ((#\}) 'end-map)
-      ((#\[) 'start-list)
-      ((#\]) 'end-list)
-      ((#\t) (read-true))
-      ((#\f) (read-false))
-      ((#\n) (read-null))
-      (else
-       (if (eof-object? char)
-           char
-           (read-error char))))))
+    (cond
+     ((eof-object? char) char)
+     ((char-whitespace? char) (read-token))
+     ((or (char-numeric? char)
+          (eq? char #\-)
+          (eq? char #\+)
+          (eq? char #\.))
+      (read-number char))
+     (else
+      (case char
+        ((#\") (read-string))
+        ((#\:) 'key-separator)
+        ((#\,) 'value-separator)
+        ((#\{) 'start-map)
+        ((#\}) 'end-map)
+        ((#\[) 'start-list)
+        ((#\]) 'end-list)
+        ((#\t) (read-true))
+        ((#\f) (read-false))
+        ((#\n) (read-null))
+        (else
+         (read-error char)))))))
 
 (define (expect-char expected-char)
   (let ((char (read-char)))
@@ -114,27 +119,31 @@
     (or (< ord 32) (< 127 ord 160))))
 
 (define (read-string)
-  (let loop ((res '()))
+  (let read-string-loop ((res '()))
     (let ((char (read-char)))
       (case char
-        ((#\\) (loop (cons (read-escaped-char) res)))
+        ((#\\) (read-string-loop (cons (read-escaped-char) res)))
         ((#\") (list->string (reverse res)))
         (else
          (if (control-char? char)
              (read-error char)
-             (loop (cons char res))))))))
+             (read-string-loop (cons char res))))))))
+
+(define (numeric? ch)
+  (or (char-numeric? ch)
+      (eq? ch #\.)
+      (eq? ch #\e)
+      (eq? ch #\E)))
 
 (define (read-number first-char)
-  (let loop ((res (list first-char)))
+  (let read-number-loop ((res (list first-char)))
     (let ((char (peek-char)))
-      (case char
-        ((#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9 #\. #\- #\+ #\e #\E)
-         (loop (cons (read-char) res)))
-        (else
-         (string->number (list->string (reverse res))))))))
+      (if (and (not (eof-object? char)) (numeric? char))
+          (read-number-loop (cons (read-char) res))
+          (string->number (list->string (reverse res)))))))
 
 (define (read-list)
-  (let loop ((res '()))
+  (let read-list-loop ((res '()))
     (let ((token (read-token)))
       (case token
         ((end-list) (reverse res))
@@ -143,18 +152,18 @@
                 (next-token (read-token)))
            (case next-token
              ((end-list) (reverse res))
-             ((value-separator) (loop res))
+             ((value-separator) (read-list-loop res))
              (else
               (parser-error next-token)))))))))
 
 (define (read-map-value)
   (let ((token (read-token)))
-    (if (eqv? token 'key-separator)
+    (if (eq? token 'key-separator)
         (read-json-object)
         (parser-error token))))
 
 (define (read-map)
-  (let loop ((res '()))
+  (let read-map-loop ((res '()))
     (let ((token (read-token)))
       (cond
        ((eq? token 'end-map) (reverse res))
@@ -164,7 +173,7 @@
                (next-token (read-token)))
           (case next-token
             ((end-map) (reverse res))
-            ((value-separator) (loop res))
+            ((value-separator) (read-map-loop res))
             (else
              (parser-error next-token)))))
        (else

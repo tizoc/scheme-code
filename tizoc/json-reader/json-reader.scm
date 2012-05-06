@@ -179,7 +179,7 @@
         (boolean? token)
         (json-null-object? token))
     token)
-   (eof-object? token #f)
+   ((eof-object? token) #f)
    (else
     (parser-error token))))
 

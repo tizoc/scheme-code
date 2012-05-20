@@ -1,0 +1,420 @@
+(c-system-include "libpq-fe.h")
+
+;; Utils
+(c-declare "static void bytevector_fill_data(sexp bytevector, const void* data, size_t size) { memcpy(sexp_bytes_data(bytevector), data, size); }")
+
+(define-c void (%bytevector-fill-data bytevector_fill_data) (sexp (const pointer void) size_t))
+
+(define-c size_t (string-bytes-count sexp_string_length) (sexp))
+
+(c-declare "static char* string_identity(char *str) { return str; }")
+
+(define-c string (c-string->string string_identity) ((pointer void)))
+
+;; Types
+
+(define-c-struct pg_conn
+  predicate: pg_conn?
+  finalizer: PQfinish)
+
+(define-c-struct pg_result
+  predicate: PGresult?
+  finalized: PQclear)
+
+;; PGconn *PQconnectdbParams(const char **keywords, const char **values, int expand_dbname);
+;; TODO (define-c (pointer void) PQconnectdbParams ((const array string) (array string) boolean))
+
+;; PGconn *PQconnectdb(const char *conninfo);
+(define-c pg_conn PQconnectdb ((const string)))
+
+;; PGconn *PQsetdbLogin(const char *pghost,
+;;                      const char *pgport,
+;;                      const char *pgoptions,
+;;                      const char *pgtty,
+;;                      const char *dbName,
+;;                      const char *login,
+;;                      const char *pwd);
+(define-c pg_conn PQsetdbLogin ((const string) (const string) (const string) (const string) (const string) (const string) (const string)))
+
+
+;; PGconn *PQsetdb(char *pghost,
+;;                 char *pgport,
+;;                 char *pgoptions,
+;;                 char *pgtty,
+;;                 char *dbName);
+(define-c pg_conn PQsetdb (string string string string string))
+
+
+;; PGconn *PQconnectStartParams(const char **keywords,
+;;                              const char **values,
+;;                              int expand_dbname);
+;; TODO (define-c pg_conn PQconnectStartParams ((const array string) (const array string) boolean))
+
+
+;; PGconn *PQconnectStart(const char *conninfo);
+(define-c pg_conn PQconnectStart ((const string)))
+
+;; enum PostgresPollingStatusType
+(define-c-const int (PostgresPollingStatusType/FAILED  "PGRES_POLLING_FAILED"))
+(define-c-const int (PostgresPollingStatusType/READING "PGRES_POLLING_READING"))
+(define-c-const int (PostgresPollingStatusType/WRITING "PGRES_POLLING_WRITING"))
+(define-c-const int (PostgresPollingStatusType/OK      "PGRES_POLLING_OK"))
+
+;; PostgresPollingStatusType PQconnectPoll(PGconn *conn);
+(define-c int PQconnectPoll (pg_conn))
+
+;; TODO
+;; PQconninfoOption *PQconndefaults(void);
+;;
+;; typedef struct
+;; {
+;;     char   *keyword;   /* The keyword of the option */
+;;     char   *envvar;    /* Fallback environment variable name */
+;;     char   *compiled;  /* Fallback compiled in default value */
+;;     char   *val;       /* Option's current value, or NULL */
+;;     char   *label;     /* Label for field in connect dialog */
+;;     char   *dispchar;  /* Indicates how to display this field
+;;                           in a connect dialog. Values are:
+;;                           ""        Display entered value as is
+;;                           "*"       Password field - hide value
+;;                           "D"       Debug option - don't show by default */
+;;     int     dispsize;  /* Field size in characters for dialog */
+;; } PQconninfoOption;
+
+;; TODO
+;; PQconninfoOption *PQconninfoParse(const char *conninfo, char **errmsg);
+
+;; void PQreset(PGconn *conn);
+(define-c void PQreset (pg_conn))
+
+;; int PQresetStart(PGconn *conn);
+(define-c int PQresetStart (pg_conn))
+
+;; PostgresPollingStatusType PQresetPoll(PGconn *conn);
+(define-c int PQresetPoll (pg_conn))
+
+;; TODO
+;; PQPING_OK
+;; PQPING_REJECT
+;; PQPING_NO_RESPONSE
+;; PQPING_NO_ATTEMPT
+
+;; PGPing PQpingParams(const char **keywords, const char **values, int expand_dbname);
+;; TODO
+
+;; PGPing PQping(const char *conninfo);
+;; TODO
+
+;; char *PQdb(const PGconn *conn);
+;; TODO: free string?
+(define-c string PQdb ((const pg_conn)))
+
+;; char *PQuser(const PGconn *conn);
+(define-c string PQuser ((const pg_conn)))
+
+;; char *PQpass(const PGconn *conn);
+(define-c string PQpass ((const pg_conn)))
+
+;; char *PQhost(const PGconn *conn);
+(define-c string PQhost ((const pg_conn)))
+
+;; char *PQport(const PGconn *conn);
+(define-c string PQport ((const pg_conn)))
+
+;; char *PQtty(const PGconn *conn);
+(define-c string PQtty ((const pg_conn)))
+
+;; char *PQoptions(const PGconn *conn);
+(define-c string PQoptions ((const pg_conn)))
+
+;; enum ConnStatusType
+(define-c-const int (ConnStatusType/BAD               "CONNECTION_BAD"))
+(define-c-const int (ConnStatusType/OK                "CONNECTION_OK"))
+(define-c-const int (ConnStatusType/STARTED           "CONNECTION_STARTED"))
+(define-c-const int (ConnStatusType/MADE              "CONNECTION_MADE"))
+(define-c-const int (ConnStatusType/AWAITING_RESPONSE "CONNECTION_AWAITING_RESPONSE"))
+(define-c-const int (ConnStatusType/AUTH_OK           "CONNECTION_AUTH_OK"))
+(define-c-const int (ConnStatusType/SSL_STARTUP       "CONNECTION_SSL_STARTUP"))
+(define-c-const int (ConnStatusType/SETENV            "CONNECTION_SETENV"))
+
+;; ConnStatusType PQstatus(const PGconn *conn);
+(define-c int PQstatus ((const pg_conn)))
+
+(define-c-const int (PGTransactionStatusType/IDLE "PQTRANS_IDLE"))
+(define-c-const int (PGTransactionStatusType/ACTIVE "PQTRANS_ACTIVE"))
+(define-c-const int (PGTransactionStatusType/INTRANS "PQTRANS_INTRANS"))
+(define-c-const int (PGTransactionStatusType/INERROR "PQTRANS_INERROR"))
+(define-c-const int (PGTransactionStatusType/UNKNOWN "PQTRANS_UNKNOWN"))
+
+;; PGTransactionStatusType PQtransactionStatus(const PGconn *conn);
+(define-c int PQtransactionStatus ((const pg_conn)))
+
+;; const char *PQparameterStatus(const PGconn *conn, const char *paramName);
+(define-c (maybe-null const string) PQparameterStatus ((const pg_conn) (const string)))
+
+;; int PQprotocolVersion(const PGconn *conn);
+(define-c int PQprotocolVersion ((const pg_conn)))
+
+;; int PQserverVersion(const PGconn *conn);
+(define-c int PQserverVersion ((const pg_conn)))
+
+;; char *PQerrorMessage(const PGconn *conn);
+(define-c string PQerrorMessage ((const pg_conn)))
+
+;; int PQsocket(const PGconn *conn);
+(define-c int PQsocket ((const pg_conn)))
+
+;; int PQbackendPID(const PGconn *conn);
+(define-c int PQbackendPID ((const pg_conn)))
+
+;; int PQconnectionNeedsPassword(const PGconn *conn);
+(define-c boolean PQconnectionNeedsPassword ((const pg_conn)))
+
+;; int PQconnectionUsedPassword(const PGconn *conn);
+(define-c boolean PQconnectionUsedPassword ((const pg_conn)))
+
+;; SSL *PQgetssl(const PGconn *conn);
+;; TODO
+
+(define-c-const int (ExecStatusType/EMPTY_QUERY "PGRES_EMPTY_QUERY"))
+(define-c-const int (ExecStatusType/COMMAND_OK "PGRES_COMMAND_OK"))
+(define-c-const int (ExecStatusType/TUPLES_OK "PGRES_TUPLES_OK"))
+(define-c-const int (ExecStatusType/COPY_OUT "PGRES_COPY_OUT"))
+(define-c-const int (ExecStatusType/COPY_IN "PGRES_COPY_IN"))
+(define-c-const int (ExecStatusType/BAD_RESPONSE "PGRES_BAD_RESPONSE"))
+(define-c-const int (ExecStatusType/NONFATAL_ERROR "PGRES_NONFATAL_ERROR"))
+(define-c-const int (ExecStatusType/FATAL_ERROR "PGRES_FATAL_ERROR"))
+(define-c-const int (ExecStatusType/COPY_BOTH "PGRES_COPY_BOTH"))
+
+;; PGresult *PQexec(PGconn *conn, const char *command);
+(define-c (maybe-null pg_result) PQexec (pg_conn (const string)))
+
+;; PGresult *PQexecParams(PGconn *conn,
+;;                        const char *command,
+;;                        int nParams,
+;;                        const Oid *paramTypes,
+;;                        const char * const *paramValues,
+;;                        const int *paramLengths,
+;;                        const int *paramFormats,
+;;                        int resultFormat);
+;; TODO
+;;(define-c pg_result (%PQexecParams PQexecParams) (pg_conn (const string) int (maybe-null array unsigned int) (array string) (maybe-null array int) (maybe-null array int) int))
+
+(c-declare
+  "static PGresult* PQexecParams__text(PGconn *conn, const char* command, int nParams, const char * const *paramValues) {"
+  "  return PQexecParams(conn, command, nParams, NULL, paramValues, NULL, NULL, 0);"
+  "}")
+
+(define-c pg_result (%PQexecParams/text PQexecParams__text) (pg_conn (const string) int (array string)))
+
+;; PGresult *PQprepare(PGconn *conn,
+;;                     const char *stmtName,
+;;                     const char *query,
+;;                     int nParams,
+;;                     const Oid *paramTypes);
+;; TODO
+
+;; PGresult *PQexecPrepared(PGconn *conn,
+;;                          const char *stmtName,
+;;                          int nParams,
+;;                          const char * const *paramValues,
+;;                          const int *paramLengths,
+;;                          const int *paramFormats,
+;;                          int resultFormat);
+;; TODO
+
+;; PGresult *PQdescribePrepared(PGconn *conn, const char *stmtName);
+;; TODO
+
+;; PGresult *PQdescribePortal(PGconn *conn, const char *portalName);
+;; TODO
+
+;; ExecStatusType PQresultStatus(const PGresult *res);
+(define-c int PQresultStatus ((const pg_result)))
+
+;; char *PQresStatus(ExecStatusType status);
+(define-c string PQresStatus (int))
+
+;; char *PQresultErrorMessage(const PGresult *res);
+(define-c string PQresultErrorMessage ((const pg_result)))
+
+;; char *PQresultErrorField(const PGresult *res, int fieldcode);
+;; TODO
+
+;; int PQntuples(const PGresult *res);
+(define-c int PQntuples ((const pg_result)))
+
+;; int PQnfields(const PGresult *res);
+(define-c int PQnfields ((const pg_result)))
+
+;; char *PQfname(const PGresult *res, int column_number);
+(define-c (maybe-null string) PQfname ((const pg_result) int))
+
+;; int PQfnumber(const PGresult *res, const char *column_name);
+(define-c int PQfnumber ((const pg_result) (const string)))
+
+(define-c-const unsigned (InvalidOid "InvalidOid"))
+
+;; Oid PQftable (const PGresult *res, int column_number);
+(define-c unsigned PQftable ((const pg_result) int))
+
+;; int PQftablecol(const PGresult *res, int column_number);
+(define-c int PQftablecol ((const pg_result) int))
+
+;; int PQfformat(const PGresult *res, int column_number);
+(define-c int PQfformat ((const pg_result) int))
+
+;; int PQftype(const PGresult *res, int column_number);
+(define-c int PQftype ((const pg_result) int))
+
+;; int PQfmod(const PGresult *res, int column_number);
+(define-c int PQfmod ((const pg_result) int))
+
+;; int PQfsize(const PGresult *res, int column_number);
+(define-c int PQfsize ((const pg_result) int))
+
+;; char *PQgetvalue(const PGresult *res, int row_number, int column_number);
+(define-c string (PQgetvalue/text PQgetvalue) ((const pg_result) int int))
+(define-c (pointer void) (%PQgetvalue/binary PQgetvalue) ((const pg_result) int int))
+
+;; int PQgetisnull(const PGresult *res, int row_number, int column_number);
+(define-c boolean PQgetisnull ((const pg_result) int int))
+
+;; int PQgetlength(const PGresult *res, int row_number, int column_number);
+(define-c int PQgetlength ((const pg_result) int int))
+
+;; int PQnparams(const PGresult *res);
+(define-c int PQnparams ((const pg_result)))
+
+;; Oid PQparamtype(const PGresult *res, int param_number);
+(define-c unsigned PQparamtype ((const pg_result) int))
+
+;; void PQprint(FILE *fout,      /* output stream */
+;;              const PGresult *res,
+;;              const PQprintOpt *po);
+;; typedef struct
+;; {
+;;     pqbool  header;      /* print output field headings and row count */
+;;     pqbool  align;       /* fill align the fields */
+;;     pqbool  standard;    /* old brain dead format */
+;;     pqbool  html3;       /* output HTML tables */
+;;     pqbool  expanded;    /* expand tables */
+;;     pqbool  pager;       /* use pager for output if needed */
+;;     char    *fieldSep;   /* field separator */
+;;     char    *tableOpt;   /* attributes for HTML table element */
+;;     char    *caption;    /* HTML table caption */
+;;     char    **fieldName; /* null-terminated array of replacement field names */
+;; } PQprintOpt;
+;; TODO
+
+;; char *PQcmdStatus(PGresult *res);
+(define-c string PQcmdStatus (pg_result))
+
+;; char *PQcmdTuples(PGresult *res);
+(define-c string PQcmdTuples (pg_result))
+
+;; Oid PQoidValue(const PGresult *res);
+(define-c unsigned PQoidValue ((const pg_result)))
+
+;; char *PQescapeLiteral(PGconn *conn, const char *str, size_t length);
+(define-c (maybe-null pointer void) (%PQescapeLiteral PQescapeLiteral) (pg_conn (const string) size_t))
+
+;; char *PQescapeIdentifier(PGconn *conn, const char *str, size_t length);
+(define-c (maybe-null pointer void) (%PQescapeIdentifier PQescapeIdentifier) (pg_conn (const string) size_t))
+
+;; size_t PQescapeStringConn(PGconn *conn, char *to, const char *from, size_t length, int *error);
+;; TODO
+
+;; size_t PQescapeString (char *to, const char *from, size_t length);
+;; TODO
+
+;; unsigned char *PQescapeByteaConn(PGconn *conn,
+;;                                  const unsigned char *from,
+;;                                  size_t from_length,
+;;                                  size_t *to_length);
+;; TODO
+
+;; int PQsendQuery(PGconn *conn, const char *command)
+(define-c boolean PQsendQuery (pg_conn (const string)));
+
+;; int PQsendQueryParams(PGconn *conn,
+;;                       const char *command,
+;;                       int nParams,
+;;                       const Oid *paramTypes,
+;;                       const char * const *paramValues,
+;;                       const int *paramLengths,
+;;                       const int *paramFormats,
+;;                       int resultFormat);
+;; TODO
+
+(c-declare
+  "static int PQsendQueryParams__text(PGconn *conn, const char* command, int nParams, const char * const *paramValues) {"
+  "  return PQsendQueryParams(conn, command, nParams, NULL, paramValues, NULL, NULL, 0);"
+  "}")
+
+(define-c boolean (%PQsendQueryParams/text PQsendQueryParams__text) (pg_conn (const string) int (array string)))
+
+;; int PQsendPrepare(PGconn *conn,
+;;                   const char *stmtName,
+;;                   const char *query,
+;;                   int nParams,
+;;                   const Oid *paramTypes);
+;; TODO
+
+;; int PQsendQueryPrepared(PGconn *conn,
+;;                         const char *stmtName,
+;;                         int nParams,
+;;                         const char * const *paramValues,
+;;                         const int *paramLengths,
+;;                         const int *paramFormats,
+;;                         int resultFormat);
+;; TODO
+
+;; int PQsendDescribePrepared(PGconn *conn, const char *stmtName);
+;; TODO
+
+;; int PQsendDescribePortal(PGconn *conn, const char *portalName);
+;; TODO
+
+;; PGresult *PQgetResult(PGconn *conn);
+(define-c (maybe-null pg_result) PQgetResult (pg_conn))
+
+;; int PQconsumeInput(PGconn *conn);
+(define-c boolean PQconsumeInput (pg_conn))
+
+;; int PQisBusy(PGconn *conn);
+(define-c boolean PQisBusy (pg_conn))
+
+;; int PQsetnonblocking(PGconn *conn, int arg);
+(define-c int PQsetnonblocking (pg_conn boolean))
+
+;; int PQisnonblocking(const PGconn *conn);
+(define-c boolean PQisnonblocking ((const pg_conn)))
+
+;; int PQflush(PGconn *conn);
+(define-c int PQflush (pg_conn))
+
+;; PGcancel *PQgetCancel(PGconn *conn);
+;; TODO
+
+;; void PQfreeCancel(PGcancel *cancel);
+;; TODO
+
+;; int PQcancel(PGcancel *cancel, char *errbuf, int errbufsize);
+;; TODO
+
+;; int PQrequestCancel(PGconn *conn);
+;; TODO
+
+;; PGnotify *PQnotifies(PGconn *conn);
+;;
+;; typedef struct pgNotify
+;; {
+;;     char *relname;              /* notification channel name */
+;;     int  be_pid;                /* process ID of notifying server process */
+;;     char *extra;                /* notification payload string */
+;; } PGnotify;
+;; TODO
+
+;; void PQfreemem(void *ptr);
+(define-c void PQfreemem ((pointer void)))

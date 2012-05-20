@@ -1,0 +1,5 @@
+(define-library (tizoc chibi postgres)
+  (export execute-sql connect NULL)
+  (import (scheme) (chibi strings) (chibi loop) (srfi 18)
+          (tizoc chibi postgres-lowlevel))
+  (include "postgres/postgres.scm"))

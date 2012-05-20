@@ -79,10 +79,10 @@
       *json-null-object*)))
 
 (define (combine-bytes b1 b2 b3 b4)
-  (+ (* b1 4096)
-     (* b2 256)
-     (* b3 16)
-     b4))
+  (bitwise-ior (arithmetic-shift b1 12)
+               (arithmetic-shift b2 8)
+               (arithmetic-shift b3 4)
+               b4))
 
 (define (read-hex-digit)
   (let* ((char (read-char))
